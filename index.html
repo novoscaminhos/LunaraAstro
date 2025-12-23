@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lunara Astrologia</title>
+    <link rel="icon" href="Logo.jpeg" type="image/jpeg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Lato:wght@300;400;700&family=Noto+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#7311d4",
+              "primary-light": "#9d4edd",
+              "background-light": "#f7f6f8",
+              "background-dark": "#191022",
+              "surface-dark": "#2d1b3e",
+              "surface-darker": "#140c1c",
+              "gold": "#D4AF37", 
+              "glow-gold": "#F5E09E",
+              "border-dark": "#4d3267",
+            },
+            fontFamily: {
+              display: ["Space Grotesk", "sans-serif"],
+              serif: ["Cinzel", "serif"],
+              body: ["Noto Sans", "sans-serif"],
+              lato: ["Lato", "sans-serif"],
+            },
+            backgroundImage: {
+              'celestial-gradient': 'radial-gradient(circle at top right, #3d1b5c 0%, #191022 60%, #0f0a16 100%)',
+              'cosmic-gradient': 'radial-gradient(circle at 50% 0%, rgba(115, 17, 212, 0.25) 0%, rgba(25, 16, 34, 0) 70%)',
+              'starry-sky': "radial-gradient(circle at center, #1B2446 0%, #0B1026 60%, #050814 100%)",
+              'button-gradient': 'linear-gradient(135deg, #7311d4 0%, #3c096c 100%)',
+            },
+            animation: {
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'spin-slow': 'spin 60s linear infinite',
+              'spin-reverse-slow': 'spin 180s linear infinite reverse',
+              'float': 'float 6s ease-in-out infinite',
+              'fade-in-up': 'fadeInUp 1s ease-out forwards',
+              'twinkle': 'twinkle 4s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              twinkle: {
+                '0%, 100%': { opacity: '0.4' },
+                '50%': { opacity: '1' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #191022; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #362348; 
+        border-radius: 3px;
+      }
+      .glass-panel {
+        background: rgba(25, 16, 34, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .text-glow {
+        text-shadow: 0 0 20px rgba(115, 17, 212, 0.5);
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        opacity: 0;
+        animation: twinkle var(--duration) ease-in-out infinite;
+        animation-delay: var(--delay);
+      }
+      /* Hide scrollbar for clean UI in some containers */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-background-dark text-white h-full min-h-screen selection:bg-primary selection:text-white">
+    <div id="root"></div>
+  </body>
+</html>
