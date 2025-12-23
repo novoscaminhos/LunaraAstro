@@ -29,7 +29,8 @@ import {
   DECISIVE_MOMENT_4_DESCRIPTIONS,
   CHALLENGE_DESCRIPTIONS,
   INTER_VALUE_DESCRIPTIONS,
-  ASCENSION_DESCRIPTIONS
+  ASCENSION_DESCRIPTIONS,
+  ARCANE_DESCRIPTIONS
 } from '../data/astralData';
 
 interface ResultNumerologyScreenProps {
@@ -70,6 +71,7 @@ export default function ResultNumerologyScreen({ userData, onNavigate, numerolog
     challenge3,
     interValueNumber,
     ascensionType,
+    arcaneNumber,
     ageRef1,
     ageRef2,
     ageRef3,
@@ -195,17 +197,40 @@ export default function ResultNumerologyScreen({ userData, onNavigate, numerolog
           </div>
         )}
 
+        {/* Arcano Pessoal */}
+        <section className="bg-gradient-to-r from-violet-900/30 to-fuchsia-900/30 rounded-2xl p-5 border border-violet-500/20 shadow-lg relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-32 h-32 bg-fuchsia-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+           <div className="flex items-center gap-3 mb-2 relative z-10">
+              <span className="material-symbols-outlined text-fuchsia-300 text-2xl">auto_awesome</span>
+              <h3 className="text-sm font-bold text-fuchsia-200 uppercase tracking-widest">Arcano Pessoal</h3>
+           </div>
+           
+           <div className="flex items-center gap-4 mb-4 relative z-10">
+              <div className="w-16 h-16 bg-fuchsia-500/20 border border-fuchsia-500/40 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-inner">
+                  {arcaneNumber}
+              </div>
+              <p className="text-[10px] text-fuchsia-200/80 italic leading-relaxed max-w-[200px]">
+                Sua vibração arquetípica, revelando potenciais latentes e a essência da sua jornada heroica.
+              </p>
+           </div>
+           
+           <div className="h-px w-full bg-white/10 mb-4"></div>
+           
+           <p className="text-sm text-white leading-relaxed font-serif text-justify relative z-10">
+              {ARCANE_DESCRIPTIONS[arcaneNumber] || "Descrição não disponível para este arcano."}
+           </p>
+        </section>
+
         {/* Grau de Ascensão */}
-        <section className="bg-gradient-to-r from-violet-900/30 to-fuchsia-900/30 rounded-2xl p-5 border border-violet-500/20">
+        <section className="bg-white/5 dark:bg-white/5 rounded-2xl p-5 border border-white/10">
            <div className="flex items-center gap-3 mb-2">
               <span className="material-symbols-outlined text-violet-300">psychology_alt</span>
               <h3 className="text-xs font-bold text-violet-200 uppercase tracking-widest">Grau de Ascensão</h3>
            </div>
            <p className="text-[10px] text-violet-200/60 mb-3 italic leading-relaxed">
-             Este índice não influi diretamente na vida da pessoa, sendo apenas um indicativo do desenvolvimento material, mental e espiritual do ser humano, ou seja, se determinada alma analisada está progredindo ou retrocedendo.
+             Este índice não influi diretamente na vida da pessoa, sendo apenas um indicativo do desenvolvimento material, mental e espiritual do ser humano.
            </p>
-           <div className="h-px w-full bg-white/10 mb-3"></div>
-           <p className="text-sm text-white leading-relaxed font-lato">
+           <p className="text-sm text-white leading-relaxed font-lato pl-4 border-l-2 border-violet-500/30">
               {ASCENSION_DESCRIPTIONS[ascensionType]}
            </p>
         </section>

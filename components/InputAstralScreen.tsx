@@ -4,7 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 import { View } from '../types';
 import { 
   PLANET_DATA, 
-  PLANET_SYMBOLOGY 
+  PLANET_SYMBOLOGY,
+  ESSENTIAL_DIGNITIES
 } from '../data/astralData';
 
 interface InputAstralScreenProps {
@@ -15,7 +16,7 @@ interface InputAstralScreenProps {
 
 const SIGNS = ["Áries", "Touro", "Gêmeos", "Câncer", "Leão", "Virgem", "Libra", "Escorpião", "Sagitário", "Capricórnio", "Aquário", "Peixes"];
 const HOUSES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const DIGNITIES = ["Peregrino", "Domicílio", "Exaltação", "Detrimento", "Queda"];
+const DIGNITIES = ["Peregrino", "Domicílio", "Exaltação", "Exílio", "Queda"];
 
 const PLANET_MAP: Record<string, string> = {
   'sun': 'Sol',
@@ -32,13 +33,27 @@ const PLANET_MAP: Record<string, string> = {
   'chiron': 'Kiron',
   'ascendant': 'Ascendente',
   'midheaven': 'Meio do Céu',
-  'northNode': 'Nodo Norte'
+  'northNode': 'Nodo Norte',
+  'partOfFortune': 'Parte da Fortuna'
 };
 
 const ENG_TO_PT_SIGNS: Record<string, string> = {
   "Aries": "Áries", "Taurus": "Touro", "Gemini": "Gêmeos", "Cancer": "Câncer",
   "Leo": "Leão", "Virgo": "Virgem", "Libra": "Libra", "Scorpio": "Escorpião",
   "Sagittarius": "Sagitário", "Capricorn": "Capricórnio", "Aquarius": "Aquário", "Pisces": "Peixes"
+};
+
+// Função auxiliar para calcular dignidade automaticamente
+const getEssentialDignity = (planetName: string, sign: string): string => {
+  const dignities = ESSENTIAL_DIGNITIES[planetName];
+  if (!dignities) return "Peregrino";
+  
+  if (dignities.domicile.includes(sign)) return "Domicílio";
+  if (dignities.exaltation.includes(sign)) return "Exaltação";
+  if (dignities.detriment.includes(sign)) return "Exílio";
+  if (dignities.fall.includes(sign)) return "Queda";
+  
+  return "Peregrino";
 };
 
 // Componente extraído e memorizado para evitar re-renderizações que causam perda de foco/scroll
@@ -113,7 +128,7 @@ const InputRow = memo(({ label, planetId, signKey, houseKey, degreeKey, retrogra
         <div className="flex gap-3 mt-2 pt-2 border-t border-white/5">
           {dignityKey && (
              <div className="flex-1">
-                <label className="text-[9px] text-white/40 uppercase font-bold tracking-widest ml-1 mb-1 block">Dignidade</label>
+                <label className="text-[9px] text-white/40 uppercase font-bold tracking-widest ml-1 mb-1 block">Dignidade Essencial</label>
                 <select 
                   value={currentDignity} 
                   onChange={(e) => onChange(dignityKey, e.target.value)}
@@ -156,19 +171,19 @@ const InputRow = memo(({ label, planetId, signKey, houseKey, degreeKey, retrogra
 export default function InputAstralScreen({ onNavigate, onProcess, isLoading }: InputAstralScreenProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [formData, setFormData] = useState({
-    // Sol, Lua, Asc não costumam ser retrógrados (Sol/Lua nunca, Asc é ponto)
-    sunSign: "Áries", sunHouse: 1, sunDegree: 15, sunDignity: "Peregrino",
+    // Sol: Exaltação em Áries (Default)
+    sunSign: "Áries", sunHouse: 1, sunDegree: 15, sunDignity: "Exaltação",
     moonSign: "Áries", moonHouse: 1, moonDegree: 15, moonDignity: "Peregrino",
     ascendantSign: "Áries", ascendantDegree: 15,
     midheavenSign: "Áries", midheavenDegree: 0,
-    northNodeSign: "Áries", northNodeDegree: 0, northNodeRetrograde: true, // Nodos são geralmente retrógrados
+    northNodeSign: "Áries", northNodeDegree: 0, northNodeRetrograde: true, 
+    fortuneSign: "Áries", fortuneHouse: 1, fortuneDegree: 0,
 
-    // Planetas
     mercurySign: "Áries", mercuryHouse: 1, mercuryDegree: 15, mercuryRetrograde: false, mercuryDignity: "Peregrino",
-    venusSign: "Áries", venusHouse: 1, venusDegree: 15, venusRetrograde: false, venusDignity: "Peregrino",
-    marsSign: "Áries", marsHouse: 1, marsDegree: 15, marsRetrograde: false, marsDignity: "Peregrino",
+    venusSign: "Áries", venusHouse: 1, venusDegree: 15, venusRetrograde: false, venusDignity: "Exílio",
+    marsSign: "Áries", marsHouse: 1, marsDegree: 15, marsRetrograde: false, marsDignity: "Domicílio",
     jupiterSign: "Áries", jupiterHouse: 1, jupiterDegree: 15, jupiterRetrograde: false, jupiterDignity: "Peregrino",
-    saturnSign: "Áries", saturnHouse: 1, saturnDegree: 15, saturnRetrograde: false, saturnDignity: "Peregrino",
+    saturnSign: "Áries", saturnHouse: 1, saturnDegree: 15, saturnRetrograde: false, saturnDignity: "Queda",
     uranusSign: "Áries", uranusHouse: 1, uranusDegree: 15, uranusRetrograde: false, uranusDignity: "Peregrino",
     neptuneSign: "Áries", neptuneHouse: 1, neptuneDegree: 15, neptuneRetrograde: false, neptuneDignity: "Peregrino",
     plutoSign: "Áries", plutoHouse: 1, plutoDegree: 15, plutoRetrograde: false, plutoDignity: "Peregrino",
@@ -178,9 +193,27 @@ export default function InputAstralScreen({ onNavigate, onProcess, isLoading }: 
 
   const [images, setImages] = useState<{ chart?: string, panorama?: string }>({});
 
-  // Handler unificado para evitar recriação de funções
   const handleFieldChange = (key: string, value: any) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [key]: value };
+      
+      // Auto-calcular dignidade se o signo mudar
+      if (key.endsWith('Sign')) {
+        const planetKey = key.replace('Sign', ''); // e.g. 'sun', 'mars'
+        const planetName = PLANET_MAP[planetKey]; // e.g. 'Sol', 'Marte'
+        
+        // Verifica se existe campo de dignidade para este planeta
+        const dignityKey = `${planetKey}Dignity`;
+        // @ts-ignore
+        if (planetName && prev[dignityKey] !== undefined) {
+           const newDignity = getEssentialDignity(planetName, value);
+           // @ts-ignore
+           newData[dignityKey] = newDignity;
+        }
+      }
+      
+      return newData;
+    });
   };
 
   const processFile = (file: File, key: keyof typeof images) => {
@@ -230,19 +263,19 @@ export default function InputAstralScreen({ onNavigate, onProcess, isLoading }: 
             Atue como um astrólogo especialista analisando gráficos técnicos.
             Analise as imagens fornecidas (roda astrológica e/ou tabela de posições). 
             Extraia com precisão os dados técnicos para os seguintes pontos:
-            Sol, Lua, Ascendente, Meio do Céu (MC), Nodo Norte, Mercúrio, Vênus, Marte, Júpiter, Saturno, Urano, Netuno, Plutão, Lilith, Kiron.
+            Sol, Lua, Ascendente, Meio do Céu (MC), Nodo Norte, Parte da Fortuna (Part of Fortune), Mercúrio, Vênus, Marte, Júpiter, Saturno, Urano, Netuno, Plutão, Lilith, Kiron.
             
-            Para cada planeta, identifique:
+            Para cada ponto, identifique:
             1. Signo (Inglês)
             2. Grau (0-29)
             3. Casa (1-12)
-            4. Se está retrógrado (isRetrograde: true/false). Geralmente indicado por um 'Rx' ou 'R' pequeno ao lado do glifo.
+            4. Se está retrógrado (isRetrograde: true/false).
 
             Retorne APENAS um objeto JSON válido.
             Estrutura exigida:
             {
               "sun": { "sign": "Aries", "degree": 0, "house": 1 },
-              "mercury": { "sign": "Taurus", "degree": 12, "house": 2, "isRetrograde": true },
+              "partOfFortune": { "sign": "Leo", "degree": 5, "house": 5 },
               ...
             }
         `;
@@ -284,25 +317,44 @@ export default function InputAstralScreen({ onNavigate, onProcess, isLoading }: 
         // Mapear dados da IA para o estado do formulário
         const translateSign = (engSign: string) => ENG_TO_PT_SIGNS[engSign] || "Áries";
         
-        setFormData(prev => ({
-            ...prev,
-            sunSign: translateSign(data.sun?.sign), sunHouse: data.sun?.house || 1, sunDegree: data.sun?.degree || 0,
-            moonSign: translateSign(data.moon?.sign), moonHouse: data.moon?.house || 1, moonDegree: data.moon?.degree || 0,
-            ascendantSign: translateSign(data.ascendant?.sign), ascendantDegree: data.ascendant?.degree || 0,
-            midheavenSign: translateSign(data.midheaven?.sign), midheavenDegree: data.midheaven?.degree || 0,
-            northNodeSign: translateSign(data.northNode?.sign), northNodeDegree: data.northNode?.degree || 0,
-            
-            mercurySign: translateSign(data.mercury?.sign), mercuryHouse: data.mercury?.house || 1, mercuryDegree: data.mercury?.degree || 0, mercuryRetrograde: !!data.mercury?.isRetrograde,
-            venusSign: translateSign(data.venus?.sign), venusHouse: data.venus?.house || 1, venusDegree: data.venus?.degree || 0, venusRetrograde: !!data.venus?.isRetrograde,
-            marsSign: translateSign(data.mars?.sign), marsHouse: data.mars?.house || 1, marsDegree: data.mars?.degree || 0, marsRetrograde: !!data.mars?.isRetrograde,
-            jupiterSign: translateSign(data.jupiter?.sign), jupiterHouse: data.jupiter?.house || 1, jupiterDegree: data.jupiter?.degree || 0, jupiterRetrograde: !!data.jupiter?.isRetrograde,
-            saturnSign: translateSign(data.saturn?.sign), saturnHouse: data.saturn?.house || 1, saturnDegree: data.saturn?.degree || 0, saturnRetrograde: !!data.saturn?.isRetrograde,
-            uranusSign: translateSign(data.uranus?.sign), uranusHouse: data.uranus?.house || 1, uranusDegree: data.uranus?.degree || 0, uranusRetrograde: !!data.uranus?.isRetrograde,
-            neptuneSign: translateSign(data.neptune?.sign), neptuneHouse: data.neptune?.house || 1, neptuneDegree: data.neptune?.degree || 0, neptuneRetrograde: !!data.neptune?.isRetrograde,
-            plutoSign: translateSign(data.pluto?.sign), plutoHouse: data.pluto?.house || 1, plutoDegree: data.pluto?.degree || 0, plutoRetrograde: !!data.pluto?.isRetrograde,
-            lilithSign: translateSign(data.lilith?.sign), lilithHouse: data.lilith?.house || 1, lilithDegree: data.lilith?.degree || 0,
-            chironSign: translateSign(data.chiron?.sign), chironHouse: data.chiron?.house || 1, chironDegree: data.chiron?.degree || 0, chironRetrograde: !!data.chiron?.isRetrograde,
-        }));
+        // Helper to update state and calc dignity
+        const newState: any = { ...formData };
+        
+        const updatePoint = (keyPrefix: string, pointData: any, planetName: string) => {
+            if (pointData) {
+                const sign = translateSign(pointData.sign);
+                newState[`${keyPrefix}Sign`] = sign;
+                newState[`${keyPrefix}Degree`] = pointData.degree || 0;
+                if (pointData.house) newState[`${keyPrefix}House`] = pointData.house;
+                if (pointData.isRetrograde !== undefined) newState[`${keyPrefix}Retrograde`] = !!pointData.isRetrograde;
+                
+                // Auto calc dignity
+                const dignityKey = `${keyPrefix}Dignity`;
+                if (dignityKey in newState) {
+                    newState[dignityKey] = getEssentialDignity(planetName, sign);
+                }
+            }
+        };
+
+        updatePoint('sun', data.sun, 'Sol');
+        updatePoint('moon', data.moon, 'Lua');
+        updatePoint('ascendant', data.ascendant, 'Ascendente');
+        updatePoint('midheaven', data.midheaven, 'Meio do Céu');
+        updatePoint('northNode', data.northNode, 'Nodo Norte');
+        updatePoint('fortune', data.partOfFortune, 'Parte da Fortuna');
+        
+        updatePoint('mercury', data.mercury, 'Mercúrio');
+        updatePoint('venus', data.venus, 'Vênus');
+        updatePoint('mars', data.mars, 'Marte');
+        updatePoint('jupiter', data.jupiter, 'Júpiter');
+        updatePoint('saturn', data.saturn, 'Saturno');
+        updatePoint('uranus', data.uranus, 'Urano');
+        updatePoint('neptune', data.neptune, 'Netuno');
+        updatePoint('pluto', data.pluto, 'Plutão');
+        updatePoint('lilith', data.lilith, 'Lilith');
+        updatePoint('chiron', data.chiron, 'Kiron');
+
+        setFormData(newState);
 
     } catch (error: any) {
         console.error("Erro na leitura da IA:", error);
@@ -318,10 +370,12 @@ export default function InputAstralScreen({ onNavigate, onProcess, isLoading }: 
       sun: { name: 'Sol', sign: formData.sunSign, house: formData.sunHouse, degree: formData.sunDegree, dignity: formData.sunDignity },
       moon: { name: 'Lua', sign: formData.moonSign, house: formData.moonHouse, degree: formData.moonDegree, dignity: formData.moonDignity },
       ascendant: { name: 'Ascendente', sign: formData.ascendantSign, house: 1, degree: formData.ascendantDegree },
+      midheaven: { name: 'Meio do Céu', sign: formData.midheavenSign, degree: formData.midheavenDegree, category: 'Point' }, 
       midheavenSign: formData.midheavenSign,
       midheavenDegree: formData.midheavenDegree,
       northNodeSign: formData.northNodeSign,
       northNodeDegree: formData.northNodeDegree,
+      partOfFortune: { name: 'Parte da Fortuna', sign: formData.fortuneSign, house: formData.fortuneHouse, degree: formData.fortuneDegree, category: 'Point' },
       planets: [
         { name: 'Mercúrio', sign: formData.mercurySign, house: formData.mercuryHouse, degree: formData.mercuryDegree, isRetrograde: formData.mercuryRetrograde, dignity: formData.mercuryDignity },
         { name: 'Vênus', sign: formData.venusSign, house: formData.venusHouse, degree: formData.venusDegree, isRetrograde: formData.venusRetrograde, dignity: formData.venusDignity },
@@ -439,44 +493,53 @@ export default function InputAstralScreen({ onNavigate, onProcess, isLoading }: 
           </div>
 
           <div className="space-y-4">
-             <h2 className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] mb-6 mt-12 flex items-center gap-2">
-                <div className="h-px flex-1 bg-white/5"></div>
-                Luminares e Eixos
-                <div className="h-px flex-1 bg-white/5"></div>
-             </h2>
-             <InputRow label="Sol" planetId="sun" signKey="sunSign" houseKey="sunHouse" degreeKey="sunDegree" dignityKey="sunDignity" formData={formData} onChange={handleFieldChange} />
-             <InputRow label="Lua" planetId="moon" signKey="moonSign" houseKey="moonHouse" degreeKey="moonDegree" dignityKey="moonDignity" formData={formData} onChange={handleFieldChange} />
-             <InputRow label="Ascendente" planetId="ascendant" signKey="ascendantSign" degreeKey="ascendantDegree" formData={formData} onChange={handleFieldChange} />
-             <InputRow label="Meio do Céu" planetId="midheaven" signKey="midheavenSign" degreeKey="midheavenDegree" formData={formData} onChange={handleFieldChange} />
-             <InputRow label="Nodo Norte" planetId="northNode" signKey="northNodeSign" degreeKey="northNodeDegree" formData={formData} onChange={handleFieldChange} />
+             {/* 1. Topo: Sol, Asc, Lua */}
+             <div className="mb-12">
+               <InputRow label="Sol" planetId="sun" signKey="sunSign" houseKey="sunHouse" degreeKey="sunDegree" dignityKey="sunDignity" formData={formData} onChange={handleFieldChange} />
+               <InputRow label="Ascendente" planetId="ascendant" signKey="ascendantSign" degreeKey="ascendantDegree" formData={formData} onChange={handleFieldChange} />
+               <InputRow label="Lua" planetId="moon" signKey="moonSign" houseKey="moonHouse" degreeKey="moonDegree" dignityKey="moonDignity" formData={formData} onChange={handleFieldChange} />
+             </div>
 
-             <h2 className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] mb-6 mt-12 flex items-center gap-2">
+             {/* 2. Planetas Pessoais */}
+             <h2 className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] mb-6 flex items-center gap-2">
                 <div className="h-px flex-1 bg-white/5"></div>
-                Dinamismo Pessoal
+                Planetas Pessoais
                 <div className="h-px flex-1 bg-white/5"></div>
              </h2>
              <InputRow label="Mercúrio" planetId="mercury" signKey="mercurySign" houseKey="mercuryHouse" degreeKey="mercuryDegree" retrogradeKey="mercuryRetrograde" dignityKey="mercuryDignity" formData={formData} onChange={handleFieldChange} />
              <InputRow label="Vênus" planetId="venus" signKey="venusSign" houseKey="venusHouse" degreeKey="venusDegree" retrogradeKey="venusRetrograde" dignityKey="venusDignity" formData={formData} onChange={handleFieldChange} />
              <InputRow label="Marte" planetId="mars" signKey="marsSign" houseKey="marsHouse" degreeKey="marsDegree" retrogradeKey="marsRetrograde" dignityKey="marsDignity" formData={formData} onChange={handleFieldChange} />
 
+             {/* 3. Planetas Sociais */}
              <h2 className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] mb-6 mt-12 flex items-center gap-2">
                 <div className="h-px flex-1 bg-white/5"></div>
-                Social e Geracional
+                Planetas Sociais
                 <div className="h-px flex-1 bg-white/5"></div>
              </h2>
              <InputRow label="Júpiter" planetId="jupiter" signKey="jupiterSign" houseKey="jupiterHouse" degreeKey="jupiterDegree" retrogradeKey="jupiterRetrograde" dignityKey="jupiterDignity" formData={formData} onChange={handleFieldChange} />
              <InputRow label="Saturno" planetId="saturn" signKey="saturnSign" houseKey="saturnHouse" degreeKey="saturnDegree" retrogradeKey="saturnRetrograde" dignityKey="saturnDignity" formData={formData} onChange={handleFieldChange} />
+
+             {/* 4. Planetas Transpessoais */}
+             <h2 className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] mb-6 mt-12 flex items-center gap-2">
+                <div className="h-px flex-1 bg-white/5"></div>
+                Planetas Transpessoais
+                <div className="h-px flex-1 bg-white/5"></div>
+             </h2>
              <InputRow label="Urano" planetId="uranus" signKey="uranusSign" houseKey="uranusHouse" degreeKey="uranusDegree" retrogradeKey="uranusRetrograde" dignityKey="uranusDignity" formData={formData} onChange={handleFieldChange} />
              <InputRow label="Netuno" planetId="neptune" signKey="neptuneSign" houseKey="neptuneHouse" degreeKey="neptuneDegree" retrogradeKey="neptuneRetrograde" dignityKey="neptuneDignity" formData={formData} onChange={handleFieldChange} />
              <InputRow label="Plutão" planetId="pluto" signKey="plutoSign" houseKey="plutoHouse" degreeKey="plutoDegree" retrogradeKey="plutoRetrograde" dignityKey="plutoDignity" formData={formData} onChange={handleFieldChange} />
+             <InputRow label="Kiron" planetId="chiron" signKey="chironSign" houseKey="chironHouse" degreeKey="chironDegree" retrogradeKey="chironRetrograde" dignityKey="chironDignity" formData={formData} onChange={handleFieldChange} />
+             <InputRow label="Lilith" planetId="lilith" signKey="lilithSign" houseKey="lilithHouse" degreeKey="lilithDegree" dignityKey="lilithDignity" formData={formData} onChange={handleFieldChange} />
+             <InputRow label="Parte da Fortuna" planetId="partOfFortune" signKey="fortuneSign" houseKey="fortuneHouse" degreeKey="fortuneDegree" formData={formData} onChange={handleFieldChange} />
+             <InputRow label="Meio do Céu" planetId="midheaven" signKey="midheavenSign" degreeKey="midheavenDegree" formData={formData} onChange={handleFieldChange} />
 
+             {/* Outros */}
              <h2 className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em] mb-6 mt-12 flex items-center gap-2">
                 <div className="h-px flex-1 bg-white/5"></div>
-                Pontos de Cura (Kármicos)
+                Pontos Extras
                 <div className="h-px flex-1 bg-white/5"></div>
              </h2>
-             <InputRow label="Lilith" planetId="lilith" signKey="lilithSign" houseKey="lilithHouse" degreeKey="lilithDegree" dignityKey="lilithDignity" formData={formData} onChange={handleFieldChange} />
-             <InputRow label="Kiron" planetId="chiron" signKey="chironSign" houseKey="chironHouse" degreeKey="chironDegree" retrogradeKey="chironRetrograde" dignityKey="chironDignity" formData={formData} onChange={handleFieldChange} />
+             <InputRow label="Nodo Norte" planetId="northNode" signKey="northNodeSign" degreeKey="northNodeDegree" formData={formData} onChange={handleFieldChange} />
           </div>
 
           <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background-dark via-background-dark/95 to-transparent z-40 max-w-md mx-auto">

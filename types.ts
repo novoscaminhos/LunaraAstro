@@ -1,4 +1,5 @@
 
+
 export enum View {
   SPLASH = 'SPLASH',
   HOME = 'HOME',
@@ -13,7 +14,8 @@ export enum View {
   FULL_REPORT = 'FULL_REPORT',
   SAVED_MAPS = 'SAVED_MAPS',
   PROFILE = 'PROFILE',
-  ORACLE = 'ORACLE'
+  ORACLE = 'ORACLE',
+  BIORHYTHM = 'BIORHYTHM'
 }
 
 export interface UserData {
@@ -37,7 +39,7 @@ export interface PlanetPosition {
   degree?: number;
   technicalContext?: string;
   category?: 'Personal' | 'Social' | 'Transpersonal' | 'Point';
-  dignity?: 'Domicílio' | 'Exaltação' | 'Detrimento' | 'Queda' | 'Peregrino';
+  dignity?: 'Domicílio' | 'Exaltação' | 'Detrimento' | 'Queda' | 'Peregrino' | 'Exílio';
   isRetrograde?: boolean;
 }
 
@@ -107,6 +109,7 @@ export interface NumerologyData {
   personalMonth: number; // Ano Pessoal + Mês Atual
   psychicNumber: number; // Dia de Nascimento Reduzido
   subconsciousResponse: number; // 9 - (números faltantes no nome)
+  arcaneNumber: number; // Arcano Pessoal (Soma do nome até 100)
   
   // Ciclos de Vida
   lifeCycle1: number; // Mês reduzido

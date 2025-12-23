@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { View } from '../types';
 import { 
   PLANET_SYMBOLOGY, 
@@ -22,6 +23,20 @@ interface LearnScreenProps {
 
 export default function LearnScreen({ onNavigate }: LearnScreenProps) {
   const [activeTab, setActiveTab] = useState<'Planetas' | 'Signos' | 'Casas' | 'Energias' | 'Qualidades' | 'Amor'>('Planetas');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  // Efeito para centralizar a tab ativa
+  useEffect(() => {
+    const activeBtn = tabsRef.current.get(activeTab);
+    if (activeBtn && scrollContainerRef.current) {
+        activeBtn.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'center'
+        });
+    }
+  }, [activeTab]);
 
   const getPlanetIcon = (name: string) => {
     switch (name) {
@@ -250,15 +265,20 @@ export default function LearnScreen({ onNavigate }: LearnScreenProps) {
       </header>
 
       {/* Tabs */}
-      <section className="px-4 py-4 sticky top-14 z-40 bg-background-dark">
-        <div className="flex p-1 bg-surface-dark rounded-xl overflow-x-auto no-scrollbar gap-1">
+      <section className="px-4 py-4 sticky top-14 z-40 bg-background-dark/95 backdrop-blur-sm">
+        <div 
+            ref={scrollContainerRef}
+            className="flex p-1 bg-surface-dark rounded-xl overflow-x-auto no-scrollbar gap-1 scroll-smooth"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {['Planetas', 'Signos', 'Casas', 'Energias', 'Qualidades', 'Amor'].map((tab) => (
             <button
               key={tab}
+              ref={(el) => { if (el) tabsRef.current.set(tab, el); }}
               onClick={() => setActiveTab(tab as any)}
-              className={`flex-1 min-w-[70px] py-2 text-xs font-bold rounded-lg transition-all uppercase tracking-wide whitespace-nowrap px-2 ${
+              className={`flex-1 min-w-[80px] py-3 text-xs font-bold rounded-lg transition-all uppercase tracking-wide whitespace-nowrap px-3 snap-center ${
                 activeTab === tab 
-                  ? 'bg-primary text-white shadow-lg' 
+                  ? 'bg-primary text-white shadow-lg scale-105' 
                   : 'text-white/50 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -288,7 +308,7 @@ export default function LearnScreen({ onNavigate }: LearnScreenProps) {
             <span className="material-symbols-outlined text-2xl text-primary transition-colors">menu_book</span>
             <span className="text-[10px] font-medium text-white transition-colors">Aprender</span>
           </a>
-          <a className="group flex flex-1 flex-col items-center justify-center gap-1 p-2 cursor-pointer">
+          <a className="group flex flex-1 flex-col items-center justify-center gap-1 p-2 cursor-pointer" onClick={() => onNavigate(View.PROFILE)}>
             <span className="material-symbols-outlined text-2xl text-white/40 group-hover:text-white transition-colors">person</span>
             <span className="text-[10px] font-medium text-white/40 group-hover:text-white transition-colors">Perfil</span>
           </a>

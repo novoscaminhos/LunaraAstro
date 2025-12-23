@@ -22,6 +22,7 @@ import FullReportScreen from './components/FullReportScreen';
 import SavedMapsScreen from './components/SavedMapsScreen';
 import ProfileScreen from './components/ProfileScreen';
 import OracleScreen from './components/OracleScreen';
+import BiorhythmScreen from './components/BiorhythmScreen';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>(View.SPLASH);
@@ -185,8 +186,22 @@ export default function App() {
     setIsLoading(true);
     
     setTimeout(() => {
-      // Calculate Part of Fortune
-      const pof = calculatePartOfFortune(manualData.sun, manualData.moon, manualData.ascendant);
+      // Calculate Part of Fortune or Use Provided One
+      let pof = manualData.partOfFortune;
+      
+      // If manual entry is missing key data, recalculate it
+      if (!pof || !pof.sign) {
+         pof = calculatePartOfFortune(manualData.sun, manualData.moon, manualData.ascendant);
+      } else {
+         // Ensure it follows structure
+         pof = {
+             name: "Parte da Fortuna",
+             sign: pof.sign,
+             house: pof.house || 1,
+             degree: pof.degree || 0,
+             category: 'Point'
+         };
+      }
 
       // Categorize Planets
       const categorizedPlanets = manualData.planets.map((p: any) => ({
@@ -260,9 +275,20 @@ export default function App() {
       {currentView === View.SELECTION && <SelectionScreen userData={userData} onNavigate={navigateTo} />}
       {currentView === View.INPUT_NUMEROLOGY && <InputNumerologyScreen userData={userData} onUpdateUser={d => setUserData(p => ({...p, ...d}))} onNavigate={navigateTo} />}
       {currentView === View.LEARN && <LearnScreen onNavigate={navigateTo} />}
+      {currentView === View.FULL_REPORT && astralChart && (
+        <FullReportScreen 
+          userData={userData} 
+          chartData={astralChart} 
+          numerologyData={numerologyChart} 
+          onNavigate={navigateTo} 
+        />
+      )}
       {currentView === View.SAVED_MAPS && <SavedMapsScreen savedMaps={savedMaps} onNavigate={navigateTo} onDelete={() => {}} onViewMap={() => {}} onCompare={() => {}} />}
+      {currentView === View.BIORHYTHM && <BiorhythmScreen userData={userData} onNavigate={navigateTo} />}
       {currentView === View.PROFILE && (
         <ProfileScreen 
+          userData={userData}
+          onUpdateUser={d => setUserData(p => ({...p, ...d}))}
           consultants={consultants} 
           savedMaps={savedMaps} 
           onSaveConsultant={c => setConsultants([...consultants, c])} 

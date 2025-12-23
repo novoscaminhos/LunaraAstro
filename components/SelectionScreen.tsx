@@ -80,6 +80,28 @@ export default function SelectionScreen({ userData, onNavigate }: SelectionScree
             </div>
           </button>
 
+          {/* Biorhythm Option */}
+          <button 
+            onClick={() => onNavigate(View.BIORHYTHM)}
+            className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition-all active:scale-[0.98] shadow-lg shadow-teal-500/5 hover:border-teal-400/40 hover:shadow-teal-500/20"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#140c1c] via-[#140c1c]/90 to-transparent"></div>
+            <div className="relative p-6 flex items-center justify-between z-10 w-full">
+              <div className="flex items-center gap-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-teal-500/20 text-teal-300 backdrop-blur-sm border border-white/5">
+                  <span className="material-symbols-outlined text-3xl">waves</span>
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-bold text-white leading-tight mb-1">Biorritmo</h3>
+                  <p className="text-xs text-white/50 font-light">Ciclos Físico, Emocional e Intelectual.</p>
+                </div>
+              </div>
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/30 group-hover:bg-teal-500 group-hover:text-white transition-all">
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </div>
+            </div>
+          </button>
+
           {/* New Full Report Option matching PDF Request */}
           <div className="h-px w-full bg-white/10 my-2"></div>
           
@@ -129,7 +151,7 @@ export default function SelectionScreen({ userData, onNavigate }: SelectionScree
             <span className="material-symbols-outlined text-2xl text-white/40 group-hover:text-white transition-colors">menu_book</span>
             <span className="text-[10px] font-medium text-white/40 group-hover:text-white transition-colors">Aprender</span>
           </a>
-          <a className="group flex flex-1 flex-col items-center justify-center gap-1 p-2 cursor-pointer">
+          <a className="group flex flex-1 flex-col items-center justify-center gap-1 p-2 cursor-pointer" onClick={(e) => {e.preventDefault(); onNavigate(View.PROFILE);}}>
             <span className="material-symbols-outlined text-2xl text-white/40 group-hover:text-white transition-colors">person</span>
             <span className="text-[10px] font-medium text-white/40 group-hover:text-white transition-colors">Perfil</span>
           </a>

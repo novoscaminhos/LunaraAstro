@@ -10,9 +10,13 @@ import AstralChartSVG from './AstralChartSVG';
 import { 
   PLANETS_IN_HOUSES, 
   PLANET_SYMBOLOGY, 
-  FORTUNE_HOUSES,
-  FORTUNE_SIGNS,
-  ESSENTIAL_DIGNITIES
+  FORTUNE_HOUSES, 
+  FORTUNE_SIGNS, 
+  ESSENTIAL_DIGNITIES,
+  ELEMENT_SIGNS,
+  YIN_ENERGY,
+  YANG_ENERGY,
+  SIGN_PROFILES
 } from '../data/astralData';
 
 interface ResultAstralScreenProps {
@@ -61,7 +65,7 @@ const getDignityInfo = (p: PlanetPosition) => {
       const type = p.dignity;
       if (type === 'Domicílio') return { label: 'Domicílio', icon: 'home', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', desc: 'Força Máxima. O planeta está em sua própria casa.' };
       if (type === 'Exaltação') return { label: 'Exaltação', icon: 'workspace_premium', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', desc: 'Alta Performance. O planeta é um convidado de honra.' };
-      if (type === 'Detrimento') return { label: 'Detrimento', icon: 'warning', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', desc: 'Desafio. O planeta está no signo oposto ao seu lar.' };
+      if (type === 'Detrimento' || type === 'Exílio') return { label: 'Exílio', icon: 'do_not_disturb_on', color: 'text-blue-900', bg: 'bg-blue-900/20', border: 'border-blue-900/40', desc: 'O planeta está no signo oposto ao seu regente (Exílio).' };
       if (type === 'Queda') return { label: 'Queda', icon: 'arrow_downward', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', desc: 'Debilidade. O planeta está desconfortável para agir.' };
   }
 
@@ -70,48 +74,34 @@ const getDignityInfo = (p: PlanetPosition) => {
   if (!dignityData) return null;
 
   if (dignityData.domicile.includes(p.sign)) {
-    return { 
-      label: 'Domicílio', 
-      icon: 'home', 
-      color: 'text-green-400', 
-      bg: 'bg-green-500/10', 
-      border: 'border-green-500/20',
-      desc: 'Força Máxima (Calculado)'
-    };
+    return { label: 'Domicílio', icon: 'home', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', desc: 'Força Máxima (Calculado via Signo).' };
   }
   if (dignityData.exaltation.includes(p.sign)) {
-    return { 
-      label: 'Exaltação', 
-      icon: 'workspace_premium', 
-      color: 'text-blue-400', 
-      bg: 'bg-blue-500/10', 
-      border: 'border-blue-500/20',
-      desc: 'Alta Performance (Calculado)'
-    };
+    return { label: 'Exaltação', icon: 'workspace_premium', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', desc: 'Alta Performance (Calculado via Signo).' };
   }
   if (dignityData.detriment.includes(p.sign)) {
-    return { 
-      label: 'Detrimento', 
-      icon: 'warning', 
-      color: 'text-orange-400', 
-      bg: 'bg-orange-500/10', 
-      border: 'border-orange-500/20',
-      desc: 'Desafio (Calculado)'
-    };
+    return { label: 'Exílio', icon: 'do_not_disturb_on', color: 'text-blue-900', bg: 'bg-blue-900/20', border: 'border-blue-900/40', desc: 'O planeta está no signo oposto ao seu regente (Calculado).' };
   }
   if (dignityData.fall.includes(p.sign)) {
-    return { 
-      label: 'Queda', 
-      icon: 'arrow_downward', 
-      color: 'text-red-400', 
-      bg: 'bg-red-500/10', 
-      border: 'border-red-500/20',
-      desc: 'Debilidade (Calculado)'
-    };
+    return { label: 'Queda', icon: 'arrow_downward', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20', desc: 'Debilidade (Calculado via Signo).' };
   }
   
-  // Não retorna nada se for peregrino calculado para limpar a UI
   return null;
+};
+
+// Helper para obter Elemento
+const getSignElement = (sign: string) => {
+  for (const [element, signs] of Object.entries(ELEMENT_SIGNS)) {
+    if (signs.includes(sign)) return element;
+  }
+  return '';
+};
+
+// Helper para obter Polaridade
+const getSignPolarity = (sign: string) => {
+  if (YANG_ENERGY.signs.includes(sign)) return 'Yang (Emissor)';
+  if (YIN_ENERGY.signs.includes(sign)) return 'Yin (Receptivo)';
+  return '';
 };
 
 export default function ResultAstralScreen({ userData, chartData, onNavigate, onSave, onRealTimeTransits }: ResultAstralScreenProps) {
@@ -185,14 +175,18 @@ export default function ResultAstralScreen({ userData, chartData, onNavigate, on
     const isExpanded = expandedPlanet === p.name;
     const relatedAspects = chartData.aspects?.filter(a => a.planet1 === p.name || a.planet2 === p.name) || [];
     const isFortune = p.name === "Parte da Fortuna";
-    const isMC = p.name === "Meio do Céu";
-    const isNN = p.name === "Nodo Norte";
     const dignity = getDignityInfo(p);
     
     let interpretation = p.technicalContext || PLANETS_IN_HOUSES[p.house]?.[p.name] || "";
     if (isFortune) {
         interpretation = `${FORTUNE_SIGNS[p.sign]} ${FORTUNE_HOUSES[p.house]}`;
     }
+
+    // Dados específicos do Sol
+    const isSun = p.name === "Sol";
+    const element = isSun ? getSignElement(p.sign) : "";
+    const polarity = isSun ? getSignPolarity(p.sign) : "";
+    const signProfile = isSun ? SIGN_PROFILES[p.sign] : "";
 
     return (
       <div className={`bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden transition-all duration-500 ${isExpanded ? 'bg-white/[0.08] border-primary/40' : ''}`}>
@@ -231,7 +225,7 @@ export default function ResultAstralScreen({ userData, chartData, onNavigate, on
           <div className="px-5 pb-6 space-y-4 animate-fade-in-up">
              <div className="h-px w-full bg-white/5"></div>
              
-             {/* Dignity Section (if applicable) */}
+             {/* Dignity Section */}
              {dignity && (
                  <div className={`flex items-start gap-3 p-3 rounded-xl border ${dignity.bg} ${dignity.border}`}>
                     <span className={`material-symbols-outlined ${dignity.color} text-lg`}>{dignity.icon}</span>
@@ -250,6 +244,65 @@ export default function ResultAstralScreen({ userData, chartData, onNavigate, on
                         <p className="text-[10px] text-white/60 leading-tight">A energia deste planeta está voltada para dentro. Revisão, reavaliação e carma pendente são temas fortes aqui.</p>
                     </div>
                  </div>
+             )}
+
+             {/* Seção Exclusiva do Sol: Elemento, Polaridade e Perfil do Signo */}
+             {isSun && (
+               <div className="mt-2 p-4 bg-gradient-to-br from-yellow-500/10 to-orange-500/5 rounded-xl border border-yellow-500/20 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-10">
+                     <span className="material-symbols-outlined text-6xl text-yellow-500">light_mode</span>
+                  </div>
+                  
+                  <h5 className="text-[10px] font-bold text-yellow-400 uppercase mb-4 flex items-center gap-2 relative z-10">
+                    <span className="material-symbols-outlined text-sm">wb_sunny</span>
+                    Essência Solar em {p.sign}
+                  </h5>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-4 relative z-10">
+                      {/* Element Card */}
+                      <div className="bg-background-dark/50 p-3 rounded-lg border border-white/5 flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${
+                            element === 'Fogo' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                            element === 'Terra' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                            element === 'Ar' ? 'bg-amber-300/20 text-amber-300 border-amber-300/30' :
+                            'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                        }`}>
+                            <span className="material-symbols-outlined text-sm">
+                              {element === 'Fogo' ? 'local_fire_department' : 
+                               element === 'Água' ? 'water_drop' : 
+                               element === 'Ar' ? 'air' : 'landscape'}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-[8px] font-bold text-white/40 uppercase block tracking-wider">Elemento</span>
+                            <span className="text-[10px] font-bold text-white">{element}</span>
+                        </div>
+                      </div>
+
+                      {/* Polarity Card */}
+                      <div className="bg-background-dark/50 p-3 rounded-lg border border-white/5 flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${
+                            polarity.includes('Yang') ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                            'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+                        }`}>
+                            <span className="material-symbols-outlined text-sm">
+                              {polarity.includes('Yang') ? 'add_circle' : 'remove_circle'}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-[8px] font-bold text-white/40 uppercase block tracking-wider">Polaridade</span>
+                            <span className="text-[10px] font-bold text-white">{polarity.split(' ')[0]}</span>
+                        </div>
+                      </div>
+                  </div>
+
+                  <div className="relative z-10">
+                     <span className="text-[8px] font-bold text-white/30 uppercase block mb-1">Perfil do Signo</span>
+                     <p className="text-[11px] text-white/90 leading-relaxed font-serif italic border-l-2 border-yellow-500/30 pl-3">
+                        "{signProfile}"
+                     </p>
+                  </div>
+               </div>
              )}
 
              <div>

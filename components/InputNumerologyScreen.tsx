@@ -91,6 +91,7 @@ export default function InputNumerologyScreen({ userData, onUpdateUser, onNaviga
     let expressionSum = 0;
     let motivationSum = 0;
     let impressionSum = 0;
+    let arcaneSum = 0;
     
     const numberCounts: Record<number, number> = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
 
@@ -99,6 +100,7 @@ export default function InputNumerologyScreen({ userData, onUpdateUser, onNaviga
       const val = PYTHAGOREAN_TABLE[char] || 0;
       if (val > 0) {
         expressionSum += val;
+        arcaneSum += val;
         numberCounts[val] = (numberCounts[val] || 0) + 1;
         
         if (VOWELS.includes(char)) {
@@ -112,6 +114,12 @@ export default function InputNumerologyScreen({ userData, onUpdateUser, onNaviga
     const expression = reduceNumber(expressionSum);
     const motivation = reduceNumber(motivationSum);
     const impression = reduceNumber(impressionSum);
+
+    // Arcano Pessoal: Baseado na soma do nome. Se > 100, reduz até ser <= 100.
+    let arcaneNumber = arcaneSum;
+    while (arcaneNumber > 100) {
+        arcaneNumber = arcaneNumber.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+    }
 
     // Lições Cármicas: Números ausentes
     const karmicLessons = Object.keys(numberCounts)
@@ -225,6 +233,7 @@ export default function InputNumerologyScreen({ userData, onUpdateUser, onNaviga
       personalMonth: personalMonth,
       psychicNumber: psychicNumber,
       subconsciousResponse: subconsciousResponse,
+      arcaneNumber: arcaneNumber,
       
       lifeCycle1,
       lifeCycle2,
